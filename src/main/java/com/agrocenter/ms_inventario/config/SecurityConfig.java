@@ -50,6 +50,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PATCH, "/api/inventario/productos/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/inventario/movimientos/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/inventario/productos/*/movimientos").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/inventario/productos", "/api/inventario/productos/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/inventario/stock/entrada")
                         .hasAnyAuthority("ROLE_ADMIN", "SCOPE_inventario.stock.write")
                         .requestMatchers(HttpMethod.POST, "/api/inventario/stock/salida")

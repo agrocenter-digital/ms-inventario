@@ -1,5 +1,6 @@
 package com.agrocenter.ms_inventario.integration;
 
+import com.agrocenter.ms_inventario.entity.Producto;
 import com.agrocenter.ms_inventario.repository.MovimientoInventarioRepository;
 import com.agrocenter.ms_inventario.repository.ProductoRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -11,6 +12,8 @@ import org.springframework.http.MediaType;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+
+import java.math.BigDecimal;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -53,8 +56,14 @@ class SecurityIntegrationTest {
     }
 
     @Test
-    void rechazaAccesoSinJwt() throws Exception {
+    void permiteConsultarCatalogoSinJwt() throws Exception {
         mockMvc.perform(get("/api/inventario/productos"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void rechazaAccesoSinJwt() throws Exception {
+        mockMvc.perform(get("/api/inventario/movimientos"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.error").value("UNAUTHORIZED"));
     }
@@ -84,6 +93,40 @@ class SecurityIntegrationTest {
                         .content(productoJson("SEG-ADMIN")))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.sku").value("SEG-ADMIN"));
+    }
+
+    @Test
+    void permiteConsultarProductoSinJwtSinNullPointerException() throws Exception {
+        Producto producto = new Producto(
+                "PUB-001",
+                "Producto Publico",
+                "Descripcion publica",
+                "General",
+                new BigDecimal("2500.00"),
+                5
+        );
+        producto.incrementarStock(50);
+        producto = productoRepository.save(producto);
+
+        // GET /api/inventario/productos sin JWT
+        mockMvc.perform(get("/api/inventario/productos"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].sku").value("PUB-001"));
+
+        // GET /api/inventario/productos/{id} sin JWT (prueba authentication null en esAdmin)
+        mockMvc.perform(get("/api/inventario/productos/" + producto.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nombre").value("Producto Publico"));
+
+        // GET /api/inventario/productos/sku/{sku} sin JWT
+        mockMvc.perform(get("/api/inventario/productos/sku/PUB-001"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(producto.getId()));
+
+        // GET /api/inventario/productos/{id}/stock sin JWT
+        mockMvc.perform(get("/api/inventario/productos/" + producto.getId() + "/stock"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.stockActual").value(50));
     }
 
     private String productoJson(String sku) {

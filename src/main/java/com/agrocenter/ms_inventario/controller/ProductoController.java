@@ -105,6 +105,9 @@ public class ProductoController {
     }
 
     private boolean esAdmin(Authentication authentication) {
+        if (authentication == null) {
+            return false;
+        }
         return authentication.getAuthorities().stream()
                 .anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN"));
     }
