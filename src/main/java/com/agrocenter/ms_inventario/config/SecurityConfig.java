@@ -45,21 +45,24 @@ public class SecurityConfig {
                                 "/swagger-ui.html",
                                 "/error"
                         ).permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/inventario/productos").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/inventario/productos/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PATCH, "/api/inventario/productos/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/api/inventario/movimientos/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/api/inventario/productos/*/movimientos").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/api/inventario/productos", "/api/inventario/productos/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/inventario/stock/entrada")
+                        .requestMatchers(HttpMethod.POST, "/api/inventario/productos", "/productos").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/inventario/productos/**", "/productos/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/api/inventario/productos/**", "/productos/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/inventario/movimientos/**", "/movimientos/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/inventario/productos/*/movimientos", "/productos/*/movimientos").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET,
+                                "/api/inventario/productos", "/api/inventario/productos/**",
+                                "/productos", "/productos/**"
+                        ).permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/inventario/stock/entrada", "/stock/entrada")
                         .hasAnyAuthority("ROLE_ADMIN", "SCOPE_inventario.stock.write")
-                        .requestMatchers(HttpMethod.POST, "/api/inventario/stock/salida")
+                        .requestMatchers(HttpMethod.POST, "/api/inventario/stock/salida", "/stock/salida")
                         .hasAnyAuthority(
                                 "ROLE_ADMIN",
                                 "ROLE_CLIENTE",
                                 "SCOPE_inventario.stock.write"
                         )
-                        .requestMatchers("/api/inventario/**")
+                        .requestMatchers("/api/inventario/**", "/stock/**", "/movimientos/**")
                         .hasAnyAuthority(
                                 "ROLE_ADMIN",
                                 "ROLE_CLIENTE",

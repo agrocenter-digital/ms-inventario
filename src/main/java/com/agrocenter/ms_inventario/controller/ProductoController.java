@@ -32,7 +32,7 @@ import java.util.List;
 @Validated
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/inventario/productos")
+@RequestMapping({"/api/inventario/productos", "/productos", "/api/inventario/productos/", "/productos/"})
 @Tag(name = "Productos", description = "Catalogo y administracion de productos")
 public class ProductoController {
 

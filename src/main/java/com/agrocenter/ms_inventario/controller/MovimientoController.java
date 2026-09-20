@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/inventario")
+@RequestMapping({"/api/inventario", ""})
 @Tag(name = "Movimientos", description = "Trazabilidad auditable de entradas y salidas")
 public class MovimientoController {
 
