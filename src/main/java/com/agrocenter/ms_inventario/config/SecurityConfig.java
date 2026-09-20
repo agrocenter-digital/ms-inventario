@@ -45,10 +45,14 @@ public class SecurityConfig {
                                 "/swagger-ui.html",
                                 "/error"
                         ).permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/inventario/productos", "/productos").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/inventario/productos/**", "/productos/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/api/inventario/productos/**", "/productos/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/api/inventario/movimientos/**", "/movimientos/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET,
+                                "/api/inventario/movimientos", "/api/inventario/movimientos/**",
+                                "/movimientos", "/movimientos/**"
+                        ).hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/inventario/productos/*/movimientos", "/productos/*/movimientos").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET,
                                 "/api/inventario/productos", "/api/inventario/productos/**",
