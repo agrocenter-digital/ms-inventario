@@ -39,8 +39,8 @@ services:
       DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-db_inventario}
       DB_USERNAME: ${POSTGRES_USER:-postgres}
       DB_PASSWORD: ${POSTGRES_PASSWORD:?Configura POSTGRES_PASSWORD en el archivo .env}
-      COGNITO_ISSUER_URI: ${COGNITO_ISSUER_URI:-http://localhost:9999/mock-cognito}
-      COGNITO_JWK_SET_URI: ${COGNITO_JWK_SET_URI:-http://localhost:9999/mock-cognito/.well-known/jwks.json}
+      COGNITO_ISSUER_URI: ${COGNITO_ISSUER_URI:-https://cognito-idp.us-east-1.amazonaws.com/us-east-1_DBCBjL67J}
+      COGNITO_JWK_SET_URI: ${COGNITO_JWK_SET_URI:-https://cognito-idp.us-east-1.amazonaws.com/us-east-1_DBCBjL67J/.well-known/jwks.json}
       COGNITO_AUDIENCE: ${COGNITO_AUDIENCE:-agrocenter-api}
       DEV_JWT_SECRET: ${DEV_JWT_SECRET:?Configura DEV_JWT_SECRET en el archivo .env}
       DEV_JWT_ISSUER: ${DEV_JWT_ISSUER:-http://localhost:8081/dev-issuer}
