@@ -91,12 +91,27 @@ public class Producto {
             BigDecimal precioVenta,
             Integer stockMinimo
     ) {
+        actualizar(sku, nombre, descripcion, categoria, precioVenta, stockMinimo, null);
+    }
+
+    public void actualizar(
+            String sku,
+            String nombre,
+            String descripcion,
+            String categoria,
+            BigDecimal precioVenta,
+            Integer stockMinimo,
+            Integer stockActual
+    ) {
         this.sku = sku;
         this.nombre = nombre;
         this.descripcion = descripcion;
         this.categoria = categoria;
         this.precioVenta = precioVenta;
         this.stockMinimo = stockMinimo;
+        if (stockActual != null) {
+            this.stockActual = stockActual;
+        }
     }
 
     public void cambiarEstado(boolean activo) {

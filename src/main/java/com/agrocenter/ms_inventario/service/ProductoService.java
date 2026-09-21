@@ -108,7 +108,8 @@ public class ProductoService {
                 limpiar(request.descripcion()),
                 request.categoria().trim(),
                 request.precioVenta(),
-                request.stockMinimo()
+                request.stockMinimo(),
+                request.stockActual()
         );
         Producto actualizado = productoRepository.save(producto);
         log.info("Producto actualizado sku={} id={}", actualizado.getSku(), actualizado.getId());
