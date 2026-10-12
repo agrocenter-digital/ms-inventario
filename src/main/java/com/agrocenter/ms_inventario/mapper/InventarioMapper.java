@@ -10,6 +10,15 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class InventarioMapper {
+    @org.springframework.beans.factory.annotation.Value("${agrocenter.catalogo.skus-solo-cotizacion:}")
+    private String skusSoloCotizacion = "";
+
+    private boolean requiereCotizacion(String sku) {
+        return java.util.Arrays.stream(skusSoloCotizacion.split(","))
+                .map(String::trim).filter(value -> !value.isEmpty())
+                .anyMatch(value -> value.equalsIgnoreCase(sku));
+    }
+
 
     public ProductoResponse toProductoResponse(Producto producto) {
         return new ProductoResponse(
@@ -24,7 +33,8 @@ public class InventarioMapper {
                 producto.tieneStockBajo(),
                 producto.isActivo(),
                 producto.getCreatedAt(),
-                producto.getUpdatedAt()
+                producto.getUpdatedAt(),
+                requiereCotizacion(producto.getSku())
         );
     }
 
