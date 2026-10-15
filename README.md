@@ -6,19 +6,19 @@ Microservicio responsable del catálogo, las existencias y la trazabilidad de in
 
 ## 1. Arquitectura y Enrutamiento en AWS
 
-En el entorno de producción (AWS Academy Learner Lab / ECS Fargate):
+En el entorno de producción (EC2 Monolítica en subred pública de la VPC por defecto de AWS Academy):
 * **Puerto**: `8081`
-* **Target Group**: `tg-ms-inventario` (Healthy)
-* **Router de Microservicios**: Application Load Balancer interno (`internal-agrocenter-bff-alb:8080`).
-* **Path-Based Routing**: Todas las peticiones con prefijo `/api/inventario/*` son dirigidas a este microservicio.
+* **Red**: Docker bridge compartida (`agrocenter-network`).
+* **Comunicación Interna**: Resoluble por nombre de contenedor (`http://ms-inventario:8081`).
+* **Persistencia**: Conectado a su base de datos `db_inventario` en PostgreSQL.
 
 ```text
-Frontend (Vercel) -> API Gateway / ALB -> bff-web (8080)
-                                            |
-                                            v (vía ALB interno: /api/inventario/*)
-                                     ms-inventario (Puerto 8081)
-                                            |
-                                     db_inventario (PostgreSQL)
+Frontend (Vercel) -> bff-web (Puerto 8080 en EC2)
+                          |
+                          v (red Docker: http://ms-inventario:8081)
+                   ms-inventario (Puerto 8081)
+                          |
+                   db_inventario (PostgreSQL)
 ```
 
 ---
