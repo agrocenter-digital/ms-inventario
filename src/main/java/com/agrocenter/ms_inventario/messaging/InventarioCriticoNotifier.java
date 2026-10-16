@@ -1,5 +1,6 @@
 package com.agrocenter.ms_inventario.messaging;
 
+import com.agrocenter.ms_inventario.messaging.audit.AuditoriaEventos;
 import com.agrocenter.ms_inventario.messaging.event.InventarioCriticoDetectado;
 import com.agrocenter.ms_inventario.messaging.event.InventarioCriticoEvent;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +18,7 @@ import java.time.Instant;
 public class InventarioCriticoNotifier {
 
     private final KafkaTemplate<String, InventarioCriticoEvent> kafkaTemplate;
+    private final AuditoriaEventos auditoriaEventos;
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void publicarInventarioCritico(InventarioCriticoDetectado detectado) {
@@ -34,24 +36,53 @@ public class InventarioCriticoNotifier {
                 Instant.now()
         );
 
-        kafkaTemplate.send(KafkaTopics.INVENTARIO_CRITICO, String.valueOf(detectado.productoId()), event)
-                .whenComplete((result, exception) -> {
-                    if (exception != null) {
-                        log.error(
-                                "No fue posible publicar alerta de inventario critico productoId={}",
-                                detectado.productoId(),
-                                exception
+        String clave = String.valueOf(detectado.productoId());
+        try {
+            kafkaTemplate.send(KafkaTopics.INVENTARIO_CRITICO, clave, event)
+                    .whenComplete((result, exception) -> {
+                        if (exception != null) {
+                            auditoriaEventos.registrar(
+                                    KafkaTopics.INVENTARIO_CRITICO,
+                                    AuditoriaEventos.EMITIDO,
+                                    clave,
+                                    AuditoriaEventos.ERROR,
+                                    "productoId=" + detectado.productoId()
+                                            + " error=" + exception.getMessage()
+                            );
+                            log.error(
+                                    "No fue posible publicar alerta de inventario critico productoId={}",
+                                    detectado.productoId(),
+                                    exception
+                            );
+                            return;
+                        }
+                        auditoriaEventos.registrar(
+                                KafkaTopics.INVENTARIO_CRITICO,
+                                AuditoriaEventos.EMITIDO,
+                                clave,
+                                AuditoriaEventos.EXITO,
+                                "productoId=" + detectado.productoId()
+                                        + " stockActual=" + detectado.stockActual()
+                                        + " cantidadSugerida=" + cantidadSugerida
                         );
-                        return;
-                    }
-                    log.info(
-                            "Alerta de inventario critico publicada productoId={} stockActual={} stockMinimo={} cantidadSugerida={}",
-                            detectado.productoId(),
-                            detectado.stockActual(),
-                            detectado.stockMinimo(),
-                            cantidadSugerida
-                    );
-                });
+                        log.info(
+                                "Alerta de inventario critico publicada productoId={} stockActual={} stockMinimo={} cantidadSugerida={}",
+                                detectado.productoId(),
+                                detectado.stockActual(),
+                                detectado.stockMinimo(),
+                                cantidadSugerida
+                        );
+                    });
+        } catch (RuntimeException exception) {
+            auditoriaEventos.registrar(
+                    KafkaTopics.INVENTARIO_CRITICO,
+                    AuditoriaEventos.EMITIDO,
+                    clave,
+                    AuditoriaEventos.ERROR,
+                    "productoId=" + detectado.productoId() + " error=" + exception.getMessage()
+            );
+            throw exception;
+        }
     }
 
     private int calcularCantidadSugerida(Integer stockActual, Integer stockMinimo) {
