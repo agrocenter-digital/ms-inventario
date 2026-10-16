@@ -16,6 +16,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.math.BigDecimal;
 import java.util.Optional;
@@ -36,6 +37,9 @@ class InventarioServiceTest {
     @Mock
     private MovimientoInventarioRepository movimientoRepository;
 
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
+
     private InventarioService inventarioService;
     private Producto producto;
 
@@ -44,7 +48,8 @@ class InventarioServiceTest {
         inventarioService = new InventarioService(
                 productoRepository,
                 movimientoRepository,
-                new InventarioMapper()
+                new InventarioMapper(),
+                eventPublisher
         );
         producto = new Producto(
                 "SEM-001",

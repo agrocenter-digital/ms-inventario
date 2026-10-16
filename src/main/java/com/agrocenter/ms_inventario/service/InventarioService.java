@@ -14,10 +14,12 @@ import com.agrocenter.ms_inventario.entity.TipoMovimiento;
 import com.agrocenter.ms_inventario.exception.ConflictoNegocioException;
 import com.agrocenter.ms_inventario.exception.RecursoNoEncontradoException;
 import com.agrocenter.ms_inventario.mapper.InventarioMapper;
+import com.agrocenter.ms_inventario.messaging.event.InventarioCriticoDetectado;
 import com.agrocenter.ms_inventario.repository.MovimientoInventarioRepository;
 import com.agrocenter.ms_inventario.repository.ProductoRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -34,6 +36,7 @@ public class InventarioService {
     private final ProductoRepository productoRepository;
     private final MovimientoInventarioRepository movimientoRepository;
     private final InventarioMapper mapper;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional(readOnly = true)
     public ProductoStockResponse consultarStock(Long productoId, boolean incluirInactivos) {
@@ -137,6 +140,17 @@ public class InventarioService {
                 request.cantidad(),
                 referencia
         );
+
+        if (tipo == TipoMovimiento.SALIDA && producto.tieneStockBajo()) {
+            eventPublisher.publishEvent(new InventarioCriticoDetectado(
+                    producto.getId(),
+                    producto.getSku(),
+                    producto.getNombre(),
+                    producto.getStockActual(),
+                    producto.getStockMinimo()
+            ));
+        }
+
         return mapper.toOperacionStockResponse(movimiento, false);
     }
 
