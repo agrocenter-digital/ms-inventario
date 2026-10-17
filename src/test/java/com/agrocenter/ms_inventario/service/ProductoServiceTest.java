@@ -39,7 +39,8 @@ class ProductoServiceTest {
                 "Saco de semillas",
                 "Semillas",
                 new BigDecimal("24990.00"),
-                10
+                10,
+                null
         );
         when(productoRepository.existsBySkuIgnoreCase("SEM-001")).thenReturn(false);
         when(productoRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
@@ -49,6 +50,26 @@ class ProductoServiceTest {
         assertThat(response.sku()).isEqualTo("SEM-001");
         assertThat(response.stockActual()).isZero();
         assertThat(response.activo()).isTrue();
+    }
+
+    @Test
+    void persisteElStockInicialIndicadoAlCrear() {
+        ProductoCreateRequest request = new ProductoCreateRequest(
+                "FERT-001",
+                "Fertilizante",
+                null,
+                "Fertilizantes",
+                new BigDecimal("18990.00"),
+                5,
+                42
+        );
+        when(productoRepository.existsBySkuIgnoreCase("FERT-001")).thenReturn(false);
+        when(productoRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        ProductoResponse response = productoService.crear(request);
+
+        assertThat(response.stockActual()).isEqualTo(42);
+        assertThat(response.stockMinimo()).isEqualTo(5);
     }
 
     @Test
