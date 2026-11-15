@@ -49,7 +49,8 @@ class InventarioServiceTest {
                 productoRepository,
                 movimientoRepository,
                 new InventarioMapper(),
-                eventPublisher
+                eventPublisher,
+                org.mockito.Mockito.mock(com.agrocenter.ms_inventario.messaging.outbox.InventarioOutboxWriter.class)
         );
         producto = new Producto(
                 "SEM-001",

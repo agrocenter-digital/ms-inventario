@@ -20,7 +20,7 @@ public class OrdenCompraEventConsumer {
     private final InventarioService inventarioService;
     private final AuditoriaEventos auditoriaEventos;
 
-    @KafkaListener(topics = KafkaTopics.ORDENES_COMPRAS)
+    @KafkaListener(topics = KafkaTopics.ORDENES_COMPRAS, autoStartup = "${KAFKA_CONSUMER_ENABLED:${spring.kafka.listener.auto-startup:true}}")
     public void onOrdenCompra(OrdenCompraEvent event) {
         if (event == null || event.ventaId() == null || event.items() == null || event.items().isEmpty()) {
             log.warn("Evento de orden de compra invalido ignorado: {}", event);

@@ -5,6 +5,7 @@ import com.agrocenter.ms_inventario.messaging.event.InventarioCriticoDetectado;
 import com.agrocenter.ms_inventario.messaging.event.InventarioCriticoEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
@@ -19,9 +20,11 @@ public class InventarioCriticoNotifier {
 
     private final KafkaTemplate<String, InventarioCriticoEvent> kafkaTemplate;
     private final AuditoriaEventos auditoriaEventos;
+    @Value("${KAFKA_PUBLISHER_ENABLED:true}") private boolean kafkaEnabled = true;
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void publicarInventarioCritico(InventarioCriticoDetectado detectado) {
+        if (!kafkaEnabled) return;
         int cantidadSugerida = calcularCantidadSugerida(
                 detectado.stockActual(),
                 detectado.stockMinimo()

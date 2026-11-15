@@ -8,6 +8,7 @@ import com.agrocenter.ms_inventario.exception.ConflictoNegocioException;
 import com.agrocenter.ms_inventario.exception.RecursoNoEncontradoException;
 import com.agrocenter.ms_inventario.mapper.InventarioMapper;
 import com.agrocenter.ms_inventario.repository.ProductoRepository;
+import com.agrocenter.ms_inventario.messaging.outbox.InventarioOutboxWriter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Sort;
@@ -25,6 +26,7 @@ public class ProductoService {
 
     private final ProductoRepository productoRepository;
     private final InventarioMapper mapper;
+    private final InventarioOutboxWriter outbox;
 
     @Transactional(readOnly = true)
     public List<ProductoResponse> listar(String categoria, String nombre, Boolean activo) {
@@ -91,18 +93,20 @@ public class ProductoService {
                 request.stockActual()
         );
         Producto creado = productoRepository.save(producto);
+        outbox.registrarProducto("ProductoCreado", creado, null);
         log.info("Producto creado sku={} id={}", creado.getSku(), creado.getId());
         return mapper.toProductoResponse(creado);
     }
 
     @Transactional
     public ProductoResponse actualizar(Long id, ProductoUpdateRequest request) {
-        Producto producto = buscarPorId(id);
+        Producto producto = buscarPorIdParaActualizar(id);
         String sku = normalizarSku(request.sku());
         if (productoRepository.existsBySkuIgnoreCaseAndIdNot(sku, id)) {
             throw new ConflictoNegocioException("Ya existe un producto con el SKU " + sku);
         }
 
+        Integer stockAnterior = producto.getStockActual();
         producto.actualizar(
                 sku,
                 request.nombre().trim(),
@@ -113,21 +117,29 @@ public class ProductoService {
                 request.stockActual()
         );
         Producto actualizado = productoRepository.save(producto);
+        outbox.registrarProducto("ProductoActualizado", actualizado, stockAnterior);
         log.info("Producto actualizado sku={} id={}", actualizado.getSku(), actualizado.getId());
         return mapper.toProductoResponse(actualizado);
     }
 
     @Transactional
     public ProductoResponse cambiarEstado(Long id, boolean activo) {
-        Producto producto = buscarPorId(id);
+        Producto producto = buscarPorIdParaActualizar(id);
+        boolean anterior = producto.isActivo();
         producto.cambiarEstado(activo);
         Producto actualizado = productoRepository.save(producto);
+        if (anterior != activo) outbox.registrarProducto("ProductoEstadoActualizado", actualizado, producto.getStockActual());
         log.info("Estado de producto actualizado sku={} activo={}", actualizado.getSku(), activo);
         return mapper.toProductoResponse(actualizado);
     }
 
     private Producto buscarPorId(Long id) {
         return productoRepository.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Producto no encontrado"));
+    }
+
+    private Producto buscarPorIdParaActualizar(Long id) {
+        return productoRepository.findByIdForUpdate(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Producto no encontrado"));
     }
 

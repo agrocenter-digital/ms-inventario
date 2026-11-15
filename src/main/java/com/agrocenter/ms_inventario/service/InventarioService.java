@@ -15,6 +15,7 @@ import com.agrocenter.ms_inventario.exception.ConflictoNegocioException;
 import com.agrocenter.ms_inventario.exception.RecursoNoEncontradoException;
 import com.agrocenter.ms_inventario.mapper.InventarioMapper;
 import com.agrocenter.ms_inventario.messaging.event.InventarioCriticoDetectado;
+import com.agrocenter.ms_inventario.messaging.outbox.InventarioOutboxWriter;
 import com.agrocenter.ms_inventario.repository.MovimientoInventarioRepository;
 import com.agrocenter.ms_inventario.repository.ProductoRepository;
 import lombok.RequiredArgsConstructor;
@@ -37,6 +38,7 @@ public class InventarioService {
     private final MovimientoInventarioRepository movimientoRepository;
     private final InventarioMapper mapper;
     private final ApplicationEventPublisher eventPublisher;
+    private final InventarioOutboxWriter outbox;
 
     @Transactional(readOnly = true)
     public ProductoStockResponse consultarStock(Long productoId, boolean incluirInactivos) {
@@ -132,6 +134,7 @@ public class InventarioService {
                 referencia,
                 origen
         ));
+        outbox.registrarMovimiento(movimiento);
 
         log.info(
                 "Stock actualizado producto={} movimiento={} cantidad={} referencia={}",

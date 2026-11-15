@@ -28,7 +28,8 @@ class ProductoServiceTest {
 
     @BeforeEach
     void setUp() {
-        productoService = new ProductoService(productoRepository, new InventarioMapper());
+        productoService = new ProductoService(productoRepository, new InventarioMapper(),
+                org.mockito.Mockito.mock(com.agrocenter.ms_inventario.messaging.outbox.InventarioOutboxWriter.class));
     }
 
     @Test
